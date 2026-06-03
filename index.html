@@ -23,9 +23,25 @@ h1,h2,h3,h4{font-family:var(--serif);font-weight:600;margin:0;color:var(--ink);l
 button{font-family:var(--sans);cursor:pointer}
 .app{display:grid;grid-template-columns:232px 1fr;grid-template-rows:60px 1fr;grid-template-areas:"brand header" "side main";min-height:100vh}
 .brand{grid-area:brand;background:#fff;display:flex;align-items:center;gap:11px;padding:0 18px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
-.mark{width:30px;height:30px;border-radius:7px;background:var(--ink);display:grid;place-items:center;color:#fff;font-family:var(--serif);font-weight:700;font-size:16px;flex:none}
+.mark{width:30px;height:30px;border-radius:7px;background:var(--ink);display:grid;place-items:center;color:#fff;font-family:var(--serif);font-weight:700;font-size:16px;flex:none;cursor:pointer;overflow:hidden}
+.mark img{width:100%;height:100%;object-fit:cover}
 .brand .name{font-family:var(--serif);font-weight:600;font-size:15px;line-height:1.1}
 .brand .sub{color:var(--soft);font-size:10px;letter-spacing:.7px;text-transform:uppercase}
+.logo-pop{position:fixed;top:60px;left:12px;z-index:60;width:252px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 34px rgba(20,20,30,.18);padding:14px;font-family:var(--sans);display:none}
+.logo-pop.open{display:block}
+.logo-pop h5{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:0 0 7px}
+.logo-pop .row{margin-bottom:13px}
+.logo-pop .sw{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.logo-pop .swatch{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);cursor:pointer;padding:0}
+.logo-pop .swatch.sel{outline:2px solid var(--ink);outline-offset:1px}
+.logo-pop .swatch.trans{background:repeating-conic-gradient(#cfcfcf 0 25%,#fff 0 50%) 50%/10px 10px}
+.logo-pop input[type=range]{width:100%}
+.logo-pop input[type=color]{width:26px;height:26px;border:1px solid var(--line);border-radius:6px;padding:0;background:#fff;cursor:pointer}
+.logo-pop .lp-act{display:flex;gap:8px;justify-content:space-between;align-items:center}
+.logo-pop .lp-btn{font-size:12px;font-weight:600;border-radius:7px;padding:7px 11px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+.logo-pop .lp-btn.ghost{background:#fff;color:var(--ink)}
+.logo-pop .lp-btn.danger{background:#fff;color:#c0392b;border-color:#e0b8b2}
+.logo-pop label.ck{display:flex;gap:7px;align-items:center;font-size:12.5px;color:var(--ink);cursor:pointer;margin:0}
 .header{grid-area:header;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--line)}
 .header .crumbs{font-size:12.5px;color:var(--muted)}
 .header .crumbs b{color:var(--ink);font-weight:600}
@@ -169,7 +185,21 @@ td{padding:13px 14px;border-bottom:1px solid var(--line-2);vertical-align:top}
 </head>
 <body>
 <div class="app">
-  <div class="brand"><div class="mark">ا</div><div><div class="name">Al Ittihad</div><div class="sub">CAR Platform</div></div></div>
+  <div class="brand"><div class="mark" id="carLogo" title="Logo settings">ا</div><div id="brandMeta"><div class="name">Al Ittihad</div><div class="sub">CAR Platform</div></div></div>
+  <input type="file" id="carLogoInput" accept="image/*" style="display:none">
+  <div class="logo-pop" id="logoPop">
+    <div class="row"><h5>Logo</h5><div class="lp-act"><button class="lp-btn" id="lpUpload">Upload / replace</button><button class="lp-btn danger" id="lpRemove">Remove</button></div></div>
+    <div class="row"><h5>Background</h5><div class="sw">
+      <button class="swatch trans" data-bg="transparent" title="Transparent"></button>
+      <button class="swatch" data-bg="#ffffff" style="background:#fff" title="White"></button>
+      <button class="swatch" data-bg="#1c1c1e" style="background:#1c1c1e" title="Dark"></button>
+      <button class="swatch" data-bg="#1b2a4a" style="background:#1b2a4a" title="Navy"></button>
+      <input type="color" id="lpColor" value="#ffffff" title="Custom colour">
+    </div></div>
+    <div class="row"><h5>Size</h5><input type="range" id="lpSize" min="20" max="48" value="30"></div>
+    <div class="row"><label class="ck"><input type="checkbox" id="lpHide"> Hide the text label</label></div>
+    <div class="row" style="margin-bottom:0;text-align:right"><button class="lp-btn ghost" id="lpClose">Done</button></div>
+  </div>
   <div class="header">
     <div class="crumbs" id="crumbs"></div>
     <div class="who"><span>Curriculum &amp; Assessment</span><div class="avatar">LH</div></div>
@@ -357,6 +387,9 @@ function summaryHTML(){
     '<div class="card"><div class="ch"><h3>Subject-grade in review</h3></div><div class="cb"><div style="display:flex;align-items:center;justify-content:space-between">'+
     '<div><b>'+esc(REVIEW.grade)+' Mathematics</b><div style="color:var(--muted);font-size:12px;margin-top:2px">Links to the curriculum map — the mapping canvas (outcomes → standards → items).</div></div>'+
     '<button class="btn ghost" onclick="alert(\'Demo: opens the mapping canvas for this subject-grade.\')">Open mapping canvas →</button></div></div></div>'+
+    '<div class="card"><div class="ch"><h3>What approval sets in motion</h3></div><div class="cb"><div style="display:flex;align-items:center;justify-content:space-between;gap:16px">'+
+    '<div><b>Action plan → curriculum development → mapping matrix → exams</b><div style="color:var(--muted);font-size:12px;margin-top:2px">On approval, the action plan becomes the brief for the curriculum (outline, DOK, TOS, content). From the curriculum come the mapping matrix and, last, the exams and revision packs in the Library, each item traceable to an outcome and a standard (Principles 7&#8211;9).</div></div>'+
+    '<button class="btn ghost" style="flex:none" onclick="alert(\'Demo: the exams come several stages after approval. They are built to the Table of Specifications and held in the Exams and Revision Library.\')">Open Exams Library →</button></div></div></div>'+
     '<div class="card"><div class="ch"><h3>Owner &amp; contacts</h3></div><div class="cb"><div style="font-size:13px"><b>'+esc(REVIEW.owner)+'</b> &nbsp;·&nbsp; Owner / reviewer<div style="color:var(--muted);font-size:12px;margin-top:2px">'+esc(REVIEW.email)+'</div></div></div></div>';
 }
 function reviewHTML(){
@@ -582,6 +615,94 @@ function standardsView(){
   main.innerHTML='<div class="page-h"><div><h1>Standards Library</h1><p>The adopted standards and regulators the curriculum is anchored to.</p></div></div>'+
     '<div class="card fade">'+rows+'</div><p class="note">Links open the official sites. The platform will surface these as referenceable objects (Principle 4).</p>';
 }
+function seedDemo(){
+  /* pre-fill the sample review so the demo opens as a completed, evidenced review */
+  var statusMap={Q2:'warn',Q4:'warn',Q5:'con',Q6:'warn',Q7:'warn',Q8:'warn',Q9:'con',Q10:'warn',Q11:'con',Q13:'warn',Q14:'warn',Q15:'warn',Q16:'warn',Q17:'con'};
+  REVIEW.sections.forEach(function(s){
+    s.qs.forEach(function(q){
+      var k=q.tag.split(' ')[0];
+      var txt=(q.ex||'').replace(/^e\.g\.\s*/,'');
+      ANSWERS[k]={text:txt, status:(statusMap[k]||'ok')};
+    });
+  });
+}
+seedDemo();
+
+var logoState={img:null,bg:'#ffffff',size:30,hideText:false};
+function applyLogo(){
+  var m=document.getElementById('carLogo');
+  var meta=document.getElementById('brandMeta');
+  if(!m) return;
+  if(logoState.img){
+    m.style.background=logoState.bg;
+    m.style.width='auto';
+    m.style.height='auto';
+    m.style.padding='3px';
+    m.innerHTML='<img src="'+logoState.img+'" style="height:'+logoState.size+'px;width:auto;max-width:220px;display:block">';
+  } else {
+    m.style.background='';
+    m.style.width='';
+    m.style.height='';
+    m.style.padding='';
+    m.innerHTML='\u0627';
+  }
+  if(meta) meta.style.display=(logoState.img&&logoState.hideText)?'none':'';
+  syncSwatches();
+}
+function syncSwatches(){
+  var sw=document.querySelectorAll('#logoPop .swatch');
+  for(var i=0;i<sw.length;i++){
+    if(sw[i].getAttribute('data-bg')===logoState.bg) sw[i].classList.add('sel'); else sw[i].classList.remove('sel');
+  }
+}
+function openLogoPanel(){
+  var p=document.getElementById('logoPop');
+  if(p){ p.classList.add('open'); }
+  var sz=document.getElementById('lpSize'); if(sz) sz.value=logoState.size;
+  var hd=document.getElementById('lpHide'); if(hd) hd.checked=logoState.hideText;
+  syncSwatches();
+}
+function closeLogoPanel(){ var p=document.getElementById('logoPop'); if(p) p.classList.remove('open'); }
+
+var carLogo=document.getElementById('carLogo');
+if(carLogo){ carLogo.addEventListener('click',function(e){ e.stopPropagation(); openLogoPanel(); }); }
+
+var lpUpload=document.getElementById('lpUpload');
+if(lpUpload){ lpUpload.addEventListener('click',function(){ document.getElementById('carLogoInput').click(); }); }
+
+var carLogoInput=document.getElementById('carLogoInput');
+if(carLogoInput){ carLogoInput.addEventListener('change',function(e){
+  var f=e.target.files&&e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){ logoState.img=ev.target.result; if(logoState.bg===null) logoState.bg='#ffffff'; applyLogo(); openLogoPanel(); };
+  r.readAsDataURL(f);
+  e.target.value='';
+}); }
+
+var swatches=document.querySelectorAll('#logoPop .swatch');
+for(var s=0;s<swatches.length;s++){
+  swatches[s].addEventListener('click',function(){ logoState.bg=this.getAttribute('data-bg'); applyLogo(); });
+}
+var lpColor=document.getElementById('lpColor');
+if(lpColor){ lpColor.addEventListener('input',function(){ logoState.bg=this.value; applyLogo(); }); }
+var lpSize=document.getElementById('lpSize');
+if(lpSize){ lpSize.addEventListener('input',function(){ var v=parseInt(this.value,10); if(!isNaN(v)) logoState.size=v; applyLogo(); }); }
+var lpHide=document.getElementById('lpHide');
+if(lpHide){ lpHide.addEventListener('change',function(){ logoState.hideText=this.checked; applyLogo(); }); }
+var lpRemove=document.getElementById('lpRemove');
+if(lpRemove){ lpRemove.addEventListener('click',function(){ logoState.img=null; applyLogo(); closeLogoPanel(); }); }
+var lpClose=document.getElementById('lpClose');
+if(lpClose){ lpClose.addEventListener('click',closeLogoPanel); }
+
+document.addEventListener('click',function(e){
+  var p=document.getElementById('logoPop');
+  if(!p||!p.classList.contains('open')) return;
+  var t=e.target;
+  if(p.contains(t)) return;
+  if(carLogo&&carLogo.contains(t)) return;
+  closeLogoPanel();
+});
+
 render();
 </script>
 </body>
